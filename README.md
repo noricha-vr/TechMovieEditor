@@ -33,15 +33,30 @@ cd TechMovieEditor
 pip install -r requirements.txt
 ```
 
-これでセットアップは完了です。
+これでセットアップは完了です👏
 
 ## 使い方
 
-- EVENT_NAME: イベント名 [kojin, ds, ml, etc...] （未実装）
-- INPUT_VIDEO: 編集対象の動画のパス （未実装）
-- START_TIME: トリミングの開始位置（秒） (オプション)（未実装）
-- END_TIME: トリミングの終了位置（秒） (オプション)（未実装）
+- EVENT_NAME: イベント名 [kojin, ds, ml, etc...] (kojinのみ実装済み )
+- INPUT_VIDEO: 動画のパス
+- START_TIME: トリミングの開始位置（00:00:00） (オプション)
+- END_TIME: トリミングの終了位置（00:00:00） (オプション)
 
 ```bash
-python main.py EVENT_NAME INPUT_VIDEO START_TIME END_TIM
+python main.py EVENT_NAME INPUT_VIDEO START_TIME END_TIME
 ```
+
+**例**
+
+```bash
+python main.py kojin input/sample.mp4
+
+python main.py kojin input/sample.mp4 00:00:30 00:01:00
+```
+
+### イベントの追加方法
+
+イベント名のフォルダーにオープニングとエンディングの動画を配置してください。
+
+- input/EVENT_NAME/ending.mp4
+- input/EVENT_NAME/opening.mp4
