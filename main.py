@@ -1,4 +1,4 @@
-from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_audioclips
+from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_audioclips, CompositeVideoClip
 import numpy as np
 import os
 import subprocess
@@ -71,13 +71,20 @@ def make_chunks(clip, chunk_size):
     return [clip.subclip(i * chunk_size, min((i + 1) * chunk_size, clip.duration)) for i in range(num_chunks)]
 
 
+def crossfade(clip1, clip2, duration):
+    clip1_fade = clip1.crossfadein(duration)
+    clip2_fade = clip2.crossfadeout(duration)
+    return CompositeVideoClip([clip1_fade, clip2_fade.set_start(clip1.duration - duration)])
+
+
 if __name__ == "__main__":
     input_video = "input/sample.mp4"
     opening_video = "input/opening.mp4"
     ending_video = "input/ending.mp4"
     output_video = "output/sample.mp4"
-    silence_threshold = -35  # 無音とみなす音量のしきい値（dB）
+    silence_threshold = -40  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
+    crossfade_duration = 1  # クロスディゾルブの時間（秒）
 
     # 動画をフォーマット
     formatted_input_video = format_video(input_video, "input")
@@ -91,7 +98,25 @@ if __name__ == "__main__":
     final_main_video = remove_silent_parts(
         main_video, silence_threshold, chunk_size)
 
+    # openingとmain_videoのクロスディゾルブ
+    opening_crossfade = opening.crossfadeout(crossfade_duration)
+    main_video_crossfade = final_main_video.crossfadein(crossfade_duration)
+    main_video_crossfade = main_video_crossfade.set_start(
+        opening.duration - crossfade_duration)
+    opening_main = CompositeVideoClip(
+        [opening_crossfade, main_video_crossfade])
+
+    # main_videoとendingのクロスディゾルブ
+    main_video_crossfade_out = final_main_video.crossfadeout(
+        crossfade_duration)
+    ending_crossfade = ending.crossfadein(crossfade_duration)
+    ending_crossfade = ending_crossfade.set_start(
+        final_main_video.duration - crossfade_duration)
+    main_ending = CompositeVideoClip(
+        [main_video_crossfade_out, ending_crossfade])
+
     final_video = concatenate_videoclips(
-        [opening, final_main_video, ending]).set_fps(24000/1001)
+        [opening_main, main_ending]).set_fps(24000/1001)
+
     final_video.write_videofile(
         output_video, codec="libx264", audio_codec="aac")
