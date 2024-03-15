@@ -1,7 +1,5 @@
 from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_audioclips
 import numpy as np
-
-
 import os
 import subprocess
 
@@ -31,7 +29,7 @@ def format_video(input_path, output_dir, target_resolution=(1920, 1080), target_
     return output_path
 
 
-def remove_silent_parts(video_clip, silence_threshold=-35, chunk_size=0.2):
+def remove_silent_parts(video_clip, silence_threshold=-50, chunk_size=0.1):
     audio = video_clip.audio
     audio_chunks = make_chunks(audio, chunk_size)
     video_chunks = make_chunks(video_clip, chunk_size)
@@ -81,13 +79,19 @@ if __name__ == "__main__":
     silence_threshold = -35  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
 
-    main_video = VideoFileClip(input_video)
-    opening = VideoFileClip(opening_video)
-    ending = VideoFileClip(ending_video)
+    # 動画をフォーマット
+    formatted_input_video = format_video(input_video, "input")
+    formatted_opening_video = format_video(opening_video, "input")
+    formatted_ending_video = format_video(ending_video, "input")
+
+    main_video = VideoFileClip(formatted_input_video)
+    opening = VideoFileClip(formatted_opening_video)
+    ending = VideoFileClip(formatted_ending_video)
 
     final_main_video = remove_silent_parts(
         main_video, silence_threshold, chunk_size)
 
-    final_video = concatenate_videoclips([opening, final_main_video, ending])
+    final_video = concatenate_videoclips(
+        [opening, final_main_video, ending]).set_fps(24000/1001)
     final_video.write_videofile(
         output_video, codec="libx264", audio_codec="aac")
