@@ -4,7 +4,10 @@ import os
 import subprocess
 
 
-def format_video(input_path, output_dir, target_resolution=(1920, 1080), target_fps=24000/1001, target_audio_rate=48000):
+def format_video(input_path, output_dir, start_time="00:00:00", end_time=None, target_resolution=(1920, 1080), target_fps=30, target_audio_rate=48000):
+    if end_time is None:
+        # 動画の長さを取得
+        end_time = VideoFileClip(input_path).duration
     # 入力ファイルの情報を取得
     input_name, input_ext = os.path.splitext(os.path.basename(input_path))
     output_path = os.path.join(
@@ -13,6 +16,8 @@ def format_video(input_path, output_dir, target_resolution=(1920, 1080), target_
     # ffmpegコマンドを構築
     cmd = [
         "ffmpeg",
+        "-ss", str(start_time),  # 動画の開始時間を設定
+        "-to", str(end_time),  # 動画の終了時間を設定
         "-i", input_path,
         "-vf", f"scale={target_resolution[0]}:{target_resolution[1]}",
         "-r", str(target_fps),
@@ -78,18 +83,27 @@ def crossfade(clip1, clip2, duration):
 
 
 if __name__ == "__main__":
+    start_time = "00:00:30"
+    end_time = "00:01:00"
+    event_name = 'kojin'
     input_video = "input/sample.mp4"
-    opening_video = "input/opening.mp4"
-    ending_video = "input/ending.mp4"
+    opening_video = f"input/{event_name}/opening.mp4"
+    ending_video = f"input/{event_name}/ending.mp4"
     output_video = "output/sample.mp4"
     silence_threshold = -40  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
     crossfade_duration = 1  # クロスディゾルブの時間（秒）
-
+    target_resolution = (1920, 1080)  # 解像度
+    target_fps = 30  # fps
+    target_audio_rate = 48000  # サンプリング周波数
+    tmp_dir = "tmp"
     # 動画をフォーマット
-    formatted_input_video = format_video(input_video, "input")
-    formatted_opening_video = format_video(opening_video, "input")
-    formatted_ending_video = format_video(ending_video, "input")
+    formatted_input_video = format_video(
+        input_video, tmp_dir, start_time, end_time, target_resolution, target_fps, target_audio_rate)
+    formatted_opening_video = format_video(
+        opening_video, tmp_dir, target_resolution=target_resolution, target_fps=target_fps, target_audio_rate=target_audio_rate)
+    formatted_ending_video = format_video(
+        ending_video, tmp_dir, target_resolution=target_resolution, target_fps=target_fps, target_audio_rate=target_audio_rate)
 
     main_video = VideoFileClip(formatted_input_video)
     opening = VideoFileClip(formatted_opening_video)
@@ -115,8 +129,8 @@ if __name__ == "__main__":
     main_ending = CompositeVideoClip(
         [main_video_crossfade_out, ending_crossfade])
 
+    # 動画を結合して書き出し
     final_video = concatenate_videoclips(
         [opening_main, main_ending]).set_fps(24000/1001)
-
     final_video.write_videofile(
         output_video, codec="libx264", audio_codec="aac")
