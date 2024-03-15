@@ -39,7 +39,9 @@ pip install -r requirements.txt
 
 - EVENT_NAME: イベント名 [kojin, ds, ml, etc...] （未実装）
 - INPUT_VIDEO: 編集対象の動画のパス （未実装）
+- START_TIME: トリミングの開始位置（秒） (オプション)（未実装）
+- END_TIME: トリミングの終了位置（秒） (オプション)（未実装）
 
 ```bash
-python main.py EVENT_NAME INPUT_VIDEO START_TIME END_TIME
+python main.py EVENT_NAME INPUT_VIDEO START_TIME END_TIM
 ```
