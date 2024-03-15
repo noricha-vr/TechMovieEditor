@@ -2,6 +2,11 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_au
 import numpy as np
 import os
 import subprocess
+import logging
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 def format_video(input_path, output_dir, start_time="00:00:00", end_time=None, target_resolution=(1920, 1080), target_fps=30, target_audio_rate=48000):
@@ -87,16 +92,18 @@ if __name__ == "__main__":
     end_time = "00:01:00"
     event_name = 'kojin'
     input_video = "input/sample.mp4"
+    now = datetime.now().strftime('%Y%m%d-%H%M%S')
     opening_video = f"input/{event_name}/opening.mp4"
     ending_video = f"input/{event_name}/ending.mp4"
-    output_video = "output/sample.mp4"
+    output_video = f"output/{event_name}_{now}.mp4"
+    tmp_dir = "tmp"
     silence_threshold = -40  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
     crossfade_duration = 1  # クロスディゾルブの時間（秒）
     target_resolution = (1920, 1080)  # 解像度
     target_fps = 30  # fps
     target_audio_rate = 48000  # サンプリング周波数
-    tmp_dir = "tmp"
+
     # 動画をフォーマット
     formatted_input_video = format_video(
         input_video, tmp_dir, start_time, end_time, target_resolution, target_fps, target_audio_rate)
