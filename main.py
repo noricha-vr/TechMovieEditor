@@ -1,6 +1,7 @@
 from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_audioclips, CompositeVideoClip
 import numpy as np
 import os
+import sys
 import subprocess
 import logging
 from datetime import datetime
@@ -88,16 +89,23 @@ def crossfade(clip1, clip2, duration):
 
 
 if __name__ == "__main__":
-    start_time = "00:00:30"
-    end_time = "00:01:00"
-    event_name = 'kojin'
-    input_video = "input/sample.mp4"
+
+    # コマンドライン引数を取得
+    args = sys.argv[1:]  # 最初の要素はスクリプト名なので除外
+
+    # 引数の数に応じて変数に割り当て、デフォルト値を設定
+    event_name = args[0] if len(args) > 0 else 'kojin'
+    input_video = args[1] if len(args) > 1 else 'input/sample.mp4'
+    start_time = args[2] if len(args) > 2 else "00:00:00"
+    end_time = args[3] if len(args) > 3 else None
+
+    # 以下のコードはそのまま維持
     now = datetime.now().strftime('%Y%m%d-%H%M%S')
     opening_video = f"input/{event_name}/opening.mp4"
     ending_video = f"input/{event_name}/ending.mp4"
     output_video = f"output/{event_name}_{now}.mp4"
     tmp_dir = "tmp"
-    silence_threshold = -40  # 無音とみなす音量のしきい値（dB）
+    silence_threshold = -50  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
     crossfade_duration = 1  # クロスディゾルブの時間（秒）
     target_resolution = (1920, 1080)  # 解像度
