@@ -2,7 +2,36 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips, concatenate_au
 import numpy as np
 
 
-def remove_silent_parts(video_clip, silence_threshold=-50, chunk_size=0.1):
+import os
+import subprocess
+
+
+def format_video(input_path, output_dir, target_resolution=(1920, 1080), target_fps=24000/1001, target_audio_rate=48000):
+    # 入力ファイルの情報を取得
+    input_name, input_ext = os.path.splitext(os.path.basename(input_path))
+    output_path = os.path.join(
+        output_dir, f"{input_name}_formatted{input_ext}")
+
+    # ffmpegコマンドを構築
+    cmd = [
+        "ffmpeg",
+        "-i", input_path,
+        "-vf", f"scale={target_resolution[0]}:{target_resolution[1]}",
+        "-r", str(target_fps),
+        "-ar", str(target_audio_rate),
+        "-c:a", "aac",
+        "-c:v", "libx264",
+        "-y",
+        output_path
+    ]
+
+    # ffmpegコマンドを実行
+    subprocess.run(cmd, check=True)
+
+    return output_path
+
+
+def remove_silent_parts(video_clip, silence_threshold=-35, chunk_size=0.2):
     audio = video_clip.audio
     audio_chunks = make_chunks(audio, chunk_size)
     video_chunks = make_chunks(video_clip, chunk_size)
@@ -46,11 +75,19 @@ def make_chunks(clip, chunk_size):
 
 if __name__ == "__main__":
     input_video = "input/sample.mp4"
+    opening_video = "input/opening.mp4"
+    ending_video = "input/ending.mp4"
     output_video = "output/sample.mp4"
     silence_threshold = -35  # 無音とみなす音量のしきい値（dB）
     chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
 
-    video = VideoFileClip(input_video)
-    final_video = remove_silent_parts(video, silence_threshold, chunk_size)
+    main_video = VideoFileClip(input_video)
+    opening = VideoFileClip(opening_video)
+    ending = VideoFileClip(ending_video)
+
+    final_main_video = remove_silent_parts(
+        main_video, silence_threshold, chunk_size)
+
+    final_video = concatenate_videoclips([opening, final_main_video, ending])
     final_video.write_videofile(
         output_video, codec="libx264", audio_codec="aac")
