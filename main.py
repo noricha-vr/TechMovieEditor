@@ -87,6 +87,20 @@ def crossfade(clip1, clip2, duration):
     return CompositeVideoClip([clip1_fade, clip2_fade.set_start(clip1.duration - duration)])
 
 
+def create_crossfade_transition(clip_start, clip_end, duration):
+    """
+    2つのクリップ間でクロスフェード遷移を作成します。
+    :param clip_start: 開始クリップ
+    :param clip_end: 終了クリップ
+    :param duration: クロスフェードの持続時間
+    :return: クロスフェード遷移を含むCompositeVideoClip
+    """
+    clip_start_fade = clip_start.crossfadeout(duration)
+    clip_end_fade = clip_end.crossfadein(
+        duration).set_start(clip_start.duration - duration)
+    return CompositeVideoClip([clip_start_fade, clip_end_fade])
+
+
 if __name__ == "__main__":
 
     # コマンドライン引数を取得
@@ -114,7 +128,7 @@ if __name__ == "__main__":
     chunk_size = 0.3  # 動画をチャンクに分割するサイズ（秒）
     crossfade_duration = 1  # クロスディゾルブの時間（秒）
     # target_resolution = (1920, 1080)  # 解像度
-    target_resolution = (720, 1280)  # 解像度
+    target_resolution = (1280, 720)  # 解像度
     target_fps = 30  # fps
     target_audio_rate = 48000  # サンプリング周波数
 
@@ -134,20 +148,12 @@ if __name__ == "__main__":
         main_video, silence_threshold, chunk_size)
 
     # openingとmain_videoのクロスディゾルブ
-    opening_crossfade = opening.crossfadeout(crossfade_duration)
-    main_video_crossfade_in = final_main_video.subclip(
-        0, crossfade_duration).crossfadein(crossfade_duration)
-    main_video_crossfade_in = main_video_crossfade_in.set_start(
-        opening.duration - crossfade_duration)
-    opening_main = CompositeVideoClip(
-        [opening_crossfade, main_video_crossfade_in])
+    opening_main = create_crossfade_transition(
+        opening, final_main_video.subclip(0, crossfade_duration), crossfade_duration)
 
     # main_videoとendingのクロスディゾルブ
-    main_video_crossfade_out = final_main_video.subclip(
-        final_main_video.duration - crossfade_duration).crossfadeout(crossfade_duration)
-    ending_crossfade = ending.crossfadein(crossfade_duration)
-    main_ending = CompositeVideoClip(
-        [main_video_crossfade_out, ending_crossfade])
+    main_ending = create_crossfade_transition(final_main_video.subclip(
+        final_main_video.duration - crossfade_duration), ending, crossfade_duration)
 
     # 動画を結合して書き出し
     main_video_without_crossfade = final_main_video.subclip(
