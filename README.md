@@ -37,26 +37,40 @@ pip install -r requirements.txt
 
 ## 使い方
 
+### オープニングとエンディングが付いた動画を作る
+
 - EVENT_NAME: イベント名 [kojin, ds, ml, etc...] (kojinのみ実装済み )
 - INPUT_VIDEO: 動画のパス
 - START_TIME: トリミングの開始位置（00:00:00） (オプション)
 - END_TIME: トリミングの終了位置（00:00:00） (オプション)
 
 ```bash
-python main.py EVENT_NAME INPUT_VIDEO START_TIME END_TIME
+python edit_video.py EVENT_NAME VIDEO_PATH START_TIME END_TIME
 ```
 
 **例**
 
 ```bash
-python main.py kojin input/sample.mp4
+# 動画をそのまま使うとき
+python edit_video.py kojin input/sample.mp4
 
-python main.py kojin input/sample.mp4 00:00:30 00:01:00
+# 動画のトリミングするとき
+python edit_video.py kojin input/sample.mp4 00:00:30 00:01:00
 ```
 
-### イベントの追加方法
+#### イベントの追加方法
 
 イベント名のフォルダーにオープニングとエンディングの動画を配置してください。
 
 - input/EVENT_NAME/ending.mp4
 - input/EVENT_NAME/opening.mp4
+
+### 動画の無音部分だけをカットした動画を作る
+
+```bash
+python remove_silence.py VIDEO_PATH
+```
+
+```bash
+python remove_silence.py input/sample.mp4
+```
