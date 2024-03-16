@@ -11,25 +11,15 @@
 
 このプロジェクトを使用するためのセットアップ手順は以下の通りです
 
-1. このリポジトリをクローンします
+1. リポジトリをクローンして、パッケージをインストールします
 
 ```bash
 git clone git@github.com:noricha-vr/TechMovieEditor.git
-```
-
-2. クローンしたディレクトリに移動します
-
-```bash
 cd TechMovieEditor
-```
-
-3. 必要な依存関係をインストールします
-
-```bash
 pip install -r requirements.txt
 ```
 
-これでセットアップは完了です👏
+これでセットアップは完了です🎉
 
 ## 機能と使い方
 
