@@ -40,7 +40,7 @@ def format_video(input_path, output_dir, start_time="00:00:00", end_time=None, t
     return output_path
 
 
-def remove_silent_parts(video_clip, silence_threshold=-50, chunk_size=0.1):
+def remove_silent_parts(video_clip, silence_threshold=-50, chunk_size=0.3):
     audio = video_clip.audio
     audio_chunks = make_chunks(audio, chunk_size)
     video_chunks = make_chunks(video_clip, chunk_size)
@@ -55,8 +55,7 @@ def remove_silent_parts(video_clip, silence_threshold=-50, chunk_size=0.1):
             non_silent_indices.append(i)
             print(f"Chunk {i}: Max volume = {max_volume_db:.2f} dB - Added")
         else:
-            print(f"Chunk {i}: Max volume = {
-                max_volume_db:.2f} dB - Skipped")
+            print(f"Chunk {i}: Max volume = {max_volume_db:.2f} dB - Skipped")
 
     # added の前後のskip は added に置き換える
     for i in range(1, len(non_silent_indices)-1):
@@ -99,16 +98,23 @@ if __name__ == "__main__":
     start_time = args[2] if len(args) > 2 else "00:00:00"
     end_time = args[3] if len(args) > 3 else None
 
+    # logging all params
+    logging.info(f'event_name: {event_name}')
+    logging.info(f'input_video: {input_video}')
+    logging.info(f'start_time: {start_time}')
+    logging.info(f'end_time: {end_time}')
+
     # 以下のコードはそのまま維持
     now = datetime.now().strftime('%Y%m%d-%H%M%S')
     opening_video = f"input/{event_name}/opening.mp4"
     ending_video = f"input/{event_name}/ending.mp4"
     output_video = f"output/{event_name}_{now}.mp4"
     tmp_dir = "tmp"
-    silence_threshold = -50  # 無音とみなす音量のしきい値（dB）
-    chunk_size = 0.2  # 動画をチャンクに分割するサイズ（秒）
+    silence_threshold = -45  # 無音とみなす音量のしきい値（dB）
+    chunk_size = 0.3  # 動画をチャンクに分割するサイズ（秒）
     crossfade_duration = 1  # クロスディゾルブの時間（秒）
-    target_resolution = (1920, 1080)  # 解像度
+    # target_resolution = (1920, 1080)  # 解像度
+    target_resolution = (720, 1280)  # 解像度
     target_fps = 30  # fps
     target_audio_rate = 48000  # サンプリング周波数
 
@@ -129,23 +135,24 @@ if __name__ == "__main__":
 
     # openingとmain_videoのクロスディゾルブ
     opening_crossfade = opening.crossfadeout(crossfade_duration)
-    main_video_crossfade = final_main_video.crossfadein(crossfade_duration)
-    main_video_crossfade = main_video_crossfade.set_start(
+    main_video_crossfade_in = final_main_video.subclip(
+        0, crossfade_duration).crossfadein(crossfade_duration)
+    main_video_crossfade_in = main_video_crossfade_in.set_start(
         opening.duration - crossfade_duration)
     opening_main = CompositeVideoClip(
-        [opening_crossfade, main_video_crossfade])
+        [opening_crossfade, main_video_crossfade_in])
 
     # main_videoとendingのクロスディゾルブ
-    main_video_crossfade_out = final_main_video.crossfadeout(
-        crossfade_duration)
+    main_video_crossfade_out = final_main_video.subclip(
+        final_main_video.duration - crossfade_duration).crossfadeout(crossfade_duration)
     ending_crossfade = ending.crossfadein(crossfade_duration)
-    ending_crossfade = ending_crossfade.set_start(
-        final_main_video.duration - crossfade_duration)
     main_ending = CompositeVideoClip(
         [main_video_crossfade_out, ending_crossfade])
 
     # 動画を結合して書き出し
+    main_video_without_crossfade = final_main_video.subclip(
+        crossfade_duration, final_main_video.duration - crossfade_duration)
     final_video = concatenate_videoclips(
-        [opening_main, main_ending]).set_fps(24000/1001)
+        [opening_main, main_video_without_crossfade, main_ending]).set_fps(24000/1001)
     final_video.write_videofile(
         output_video, codec="libx264", audio_codec="aac")
