@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO,
 
 
 class VideoFormatter:
-    def __init__(self, input_path, output_dir, start_time="00:00:00", end_time=None, target_resolution=(1920, 1080), target_fps=30, target_audio_rate=48000):
+    def __init__(self, input_path, output_dir, target_resolution=(1920, 1080), target_fps=30, target_audio_rate=48000, start_time="00:00:00", end_time=None, is_monaural=False):
         self.input_path = input_path
         self.output_dir = output_dir
         self.start_time = start_time
@@ -20,6 +20,7 @@ class VideoFormatter:
         self.target_resolution = target_resolution
         self.target_fps = target_fps
         self.target_audio_rate = target_audio_rate
+        self.is_monaural = is_monaural
 
     def format_video(self):
         input_name, input_ext = os.path.splitext(
@@ -38,6 +39,12 @@ class VideoFormatter:
                             }:{self.target_resolution[1]}",
             "-r", str(self.target_fps),  # フレームレートの設定
             "-ar", str(self.target_audio_rate),  # オーディオサンプルレートの設定
+        ]
+
+        if self.is_monaural:
+            cmd.extend(["-ac", "1"])  # モノラル音声に変換
+
+        cmd.extend([
             "-c:a", "aac",  # オーディオコーデックの指定
             "-c:v", "libx264",  # ビデオコーデックの指定
             "-preset", "medium",  # エンコード速度と圧縮率のバランス
@@ -46,7 +53,7 @@ class VideoFormatter:
             "-pix_fmt", "yuv420p",  # ピクセルフォーマットの指定
             "-y",  # 出力ファイルの上書き確認をスキップ
             output_path  # 出力ファイルパス
-        ]
+        ])
 
         subprocess.run(cmd, check=True)
 

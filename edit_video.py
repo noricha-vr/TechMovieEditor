@@ -28,24 +28,25 @@ if __name__ == "__main__":
     silence_threshold = -45
     chunk_size = 0.3
     crossfade_duration = 1
-    # target_resolution = (1280, 720)
+    # target_resolution = (720,480) # debug
     target_resolution = (1920, 1080)
     target_fps = 60
     target_audio_rate = 48000
+    is_monaural = True
 
     # 入力動画をフォーマットする
     input_formatter = VideoFormatter(
-        input_video, tmp_dir, start_time, end_time, target_resolution, target_fps, target_audio_rate)
+        input_video, tmp_dir,  target_resolution, target_fps, target_audio_rate, start_time, end_time, is_monaural)
     formatted_input_video = input_formatter.format_video()
 
     # オープニング動画をフォーマットする
-    opening_formatter = VideoFormatter(opening_video, tmp_dir, target_resolution=target_resolution,
-                                       target_fps=target_fps, target_audio_rate=target_audio_rate)
+    opening_formatter = VideoFormatter(
+        opening_video, tmp_dir, target_resolution, target_fps, target_audio_rate)
     formatted_opening_video = opening_formatter.format_video()
 
     # エンディング動画をフォーマットする
-    ending_formatter = VideoFormatter(ending_video, tmp_dir, target_resolution=target_resolution,
-                                      target_fps=target_fps, target_audio_rate=target_audio_rate)
+    ending_formatter = VideoFormatter(
+        ending_video, tmp_dir, target_resolution, target_fps, target_audio_rate)
     formatted_ending_video = ending_formatter.format_video()
 
     # フォーマットされた動画を読み込む
