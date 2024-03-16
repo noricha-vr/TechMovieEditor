@@ -28,8 +28,9 @@ if __name__ == "__main__":
     silence_threshold = -45
     chunk_size = 0.3
     crossfade_duration = 1
-    target_resolution = (1280, 720)
-    target_fps = 30
+    # target_resolution = (1280, 720)
+    target_resolution = (1920, 1080)
+    target_fps = 60
     target_audio_rate = 48000
 
     input_formatter = VideoFormatter(
@@ -62,4 +63,8 @@ if __name__ == "__main__":
     final_video = concatenate_videoclips(
         [opening_main, main_video_without_crossfade, main_ending]).set_fps(24000/1001)
     final_video.write_videofile(
-        output_video, codec="libx264", audio_codec="aac")
+        output_video,
+        codec="libx264",
+        audio_codec="aac",
+        fps=60
+    )
